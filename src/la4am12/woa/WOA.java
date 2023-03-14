@@ -1,5 +1,6 @@
 package la4am12.woa;
 
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -9,13 +10,13 @@ import java.util.Random;
  */
 public class WOA {
 	private OptFunction optFunction;
-	private int lb, ub;
+	private double lb, ub;
 	private int population;
 	private int dim, maxIter;
-	private int[][] positions;
+	private double[][] positions;
 	private boolean minimize;
 	private double[] convergenceCurve;
-	private int[] optimalPos;
+	private double[] optimalPos;
 	private double optimalScore;
 
 	public WOA(OptFunction optFunction, int population, int lb, int ub, int dim, int maxIter, boolean minimize) {
@@ -25,16 +26,17 @@ public class WOA {
 		this.ub = ub;
 		this.dim = dim;
 		this.maxIter = maxIter;
-		this.positions = new int[population][dim];
+		this.positions = new double[population][dim];
 		this.convergenceCurve = new double[maxIter];
 		this.minimize = minimize;
 		this.optimalScore = minimize ? Double.MAX_VALUE : -Double.MAX_VALUE;
-		optimalPos = new int[dim];
+		optimalPos = new double[dim];
 		initPopulation();
 	}
 
 
 	private void adjustPositions(int agentIndex) {
+		positions[agentIndex] = Arrays.stream(positions[agentIndex]).map(Math::round).toArray();
 		for (int j = 0; j < dim; j++) {
 			if (positions[agentIndex][j] < lb) {
 				positions[agentIndex][j] = lb;
@@ -48,10 +50,10 @@ public class WOA {
 
 	private void initPopulation() {
 		Random rand = new Random();
-		this.positions = new int[population][dim];
+		this.positions = new double[population][dim];
 		for (int i = 0; i < population; i++) {
 			for (int j = 0; j < dim; j++) {
-				positions[i][j] = (int) (lb + rand.nextDouble() * (ub - lb));
+				positions[i][j] = lb + (ub - lb) * rand.nextDouble();
 			}
 		}
 	}
@@ -62,7 +64,8 @@ public class WOA {
 			adjustPositions(i);
 
 			// Calculate objective function for each search agent
-			double fitness = optFunction.calc(positions[i]);
+			int[] params = Arrays.stream(positions[i]).mapToLong(Math::round).mapToInt((x) -> (int) x).toArray();
+			double fitness = optFunction.calc(params);
 
 			// Update the leader
 			if (minimize && fitness < optimalScore || !minimize && fitness > optimalScore) {
@@ -91,7 +94,7 @@ public class WOA {
 						positions[i][j] = (int) (optimalPos[j] - A * D_Leader);      // Eq. (2.2)
 					} else {
 						int randWhaleIdx = rand.nextInt(population);
-						int[] randomPos = positions[randWhaleIdx];
+						double[] randomPos = positions[randWhaleIdx];
 						double D_X_rand = Math.abs(C * randomPos[j] - positions[i][j]); // Eq. (2.7)
 						positions[i][j] = (int) (randomPos[j] - A * D_X_rand);  // Eq. (2.8)
 					}
@@ -118,14 +121,14 @@ public class WOA {
 			updatePosition(a, a2);
 		}
 		calcFitness();
-		return optimalPos;
+		return Arrays.stream(optimalPos).mapToLong(Math::round).mapToInt((x) -> (int) x).toArray();
 	}
 
 	public double[] getConvergenceCurve() {
 		return convergenceCurve;
 	}
 
-	public int[] getLeaderPos() {
+	public double[] getLeaderPos() {
 		return optimalPos;
 	}
 

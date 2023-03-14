@@ -21,7 +21,7 @@ public class WOAScheduler extends Scheduler {
 
 	public WOAScheduler(List<Cloudlet> cloudletList, List<Vm> vmList) {
 		super(cloudletList, vmList);
-		this.woa = new WOA(this::estimateTimeSpan, POPULATION, 0, vmNum-1, cloudletNum, MAX_ITER, true);
+		this.woa = new WOA(this::estimateMakespan, POPULATION, 0, vmNum-1, cloudletNum, MAX_ITER, true);
 	}
 
 	@Override

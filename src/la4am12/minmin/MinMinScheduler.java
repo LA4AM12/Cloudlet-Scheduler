@@ -45,23 +45,23 @@ public class MinMinScheduler extends Scheduler {
 		cloudletToVm[0] = vmList.get(vmNum - 1).getId();
 
 		int idx;
-		double timeSpan;
+		double makespan;
 		for (int i = 1; i < cloudletNum; i++) {
-			timeSpan = vmUptime[vmNum - 1] + time[i][vmNum - 1];
+			makespan = vmUptime[vmNum - 1] + time[i][vmNum - 1];
 			idx = vmNum - 1;
 
 			for (int j = vmNum - 2; j >= 0; j--) {
 				if (vmUptime[j] == 0) {
-					if (timeSpan >= time[i][j]) {
+					if (makespan >= time[i][j]) {
 						idx = j;
 					}
 					break;
 				}
 
-				if (timeSpan > vmUptime[j] + time[i][j]) {
-					timeSpan = vmUptime[j] + time[i][j];
+				if (makespan > vmUptime[j] + time[i][j]) {
+					makespan = vmUptime[j] + time[i][j];
 					idx = j;
-				} else if (timeSpan == vmUptime[j] + time[i][j] && vmTaskCount[j] < vmTaskCount[idx]) {
+				} else if (makespan == vmUptime[j] + time[i][j] && vmTaskCount[j] < vmTaskCount[idx]) {
 					idx = j;
 				}
 			}

@@ -1,6 +1,9 @@
 package la4am12;
 
+import la4am12.maxmin.MaxMinScheduler;
 import la4am12.minmin.MinMinScheduler;
+import la4am12.random.RandomScheduler;
+import la4am12.woa.WOAScheduler;
 import org.cloudbus.cloudsim.*;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
@@ -84,9 +87,9 @@ public class Main {
 	/**
 	 * Cloudlets count
 	 */
-	private static final int CLOUDLET_N = 100;
+	private static final int CLOUDLET_N = 50;
 
-	private static final Random R = new Random(1);
+	private static final Random R = new Random(0);
 
 	private static final int NUM_USER = 1;
 
@@ -117,12 +120,13 @@ public class Main {
 		
 		// allocate tasks to vms
 		// Scheduler scheduler = new RandomScheduler(cloudletList, vmList);
-		Scheduler scheduler = new MinMinScheduler(cloudletList, vmList);
+		// Scheduler scheduler = new MinMinScheduler(cloudletList, vmList);
 		// Scheduler scheduler = new MaxMinScheduler(cloudletList, vmList);
-		// Scheduler scheduler = new WOAScheduler(cloudletList, vmList);
+		Scheduler scheduler = new WOAScheduler(cloudletList, vmList);
 		scheduler.schedule();
 
 		// Starts the simulation
+		Log.printLine("========== START ==========");
 		CloudSim.startSimulation();
 
 		// Print results when simulation is over
@@ -188,15 +192,15 @@ public class Main {
 		String vmm = "Xen"; // VMM name
 		
 		for (int i = 0; i < L_VM_N; i++) {
-			vmList.add(new Vm(vmId++, userId, L_MIPS, pesNumber, RAM, BW, IMAGE_SIZE, vmm, new CloudletSchedulerTimeShared()));
+			vmList.add(new Vm(vmId++, userId, L_MIPS, pesNumber, RAM, BW, IMAGE_SIZE, vmm, new CloudletSchedulerSpaceShared()));
 		}
 
 		for (int i = 0; i < M_VM_N; i++) {
-			vmList.add(new Vm(vmId++, userId, M_MIPS, pesNumber, RAM, BW, IMAGE_SIZE, vmm, new CloudletSchedulerTimeShared()));
+			vmList.add(new Vm(vmId++, userId, M_MIPS, pesNumber, RAM, BW, IMAGE_SIZE, vmm, new CloudletSchedulerSpaceShared()));
 		}
 
 		for (int i = 0; i < H_VM_N; i++) {
-			vmList.add(new Vm(vmId++, userId, H_MIPS, pesNumber, RAM, BW, IMAGE_SIZE, vmm, new CloudletSchedulerTimeShared()));
+			vmList.add(new Vm(vmId++, userId, H_MIPS, pesNumber, RAM, BW, IMAGE_SIZE, vmm, new CloudletSchedulerSpaceShared()));
 		}
 		return vmList;
 	}
@@ -210,7 +214,7 @@ public class Main {
 		
 		for(int i=0; i < CLOUDLET_N; i++) {
 			// todo
-			long length = R.nextInt(4000) + 1000;
+			long length = R.nextInt(40000) + 10000;
 			long fileSize = R.nextInt(20000) + 10000;
 			Cloudlet cloudlet = new Cloudlet(id, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
 			cloudlet.setUserId(userId);
@@ -220,10 +224,7 @@ public class Main {
 		return cloudletList;
 	}
 
-	private static void printCloudletList(List<Cloudlet> list) {
-		int size = list.size();
-		Cloudlet cloudlet;
-
+	private static void printCloudletList(List<Cloudlet> cloudletList) {
 		String indent = "    ";
 		Log.printLine();
 		Log.printLine("========== OUTPUT ==========");
@@ -232,22 +233,37 @@ public class Main {
 				+ "Start Time" + indent + "Finish Time");
 
 		DecimalFormat dft = new DecimalFormat("###.##");
-		for (Cloudlet value : list) {
-			cloudlet = value;
+		double makespan = 0;
+		int vmNum = L_VM_N + M_VM_N + H_VM_N;
+		double[] vmUpTime = new double[vmNum];
+
+		for (Cloudlet cloudlet : cloudletList) {
 			Log.print(indent + cloudlet.getCloudletId() + indent + indent);
 
 			if (cloudlet.getCloudletStatus() == Cloudlet.SUCCESS) {
-				Log.print("SUCCESS");
 
+				double finishTime = cloudlet.getFinishTime();
+				if (finishTime > makespan) {
+					makespan = finishTime;
+				}
+				int vmId = cloudlet.getVmId();
+				double actualCPUTime = cloudlet.getActualCPUTime();
+				vmUpTime[vmId] += actualCPUTime;
+
+				Log.print("SUCCESS");
 				Log.printLine(indent + indent + cloudlet.getResourceId()
 						+ indent + indent + indent + cloudlet.getVmId()
 						+ indent + indent
 						+ dft.format(cloudlet.getSubmissionTime()) + indent
 						+ indent + dft.format(cloudlet.getExecStartTime())
 						+ indent + indent
-						+ dft.format(cloudlet.getFinishTime()));
+						+ dft.format(finishTime));
 			}
 		}
+		double finalMakespan = makespan;
+		double lb = Arrays.stream(vmUpTime).map(x -> x / finalMakespan).average().getAsDouble();
+		Log.printLine("makespan: " + finalMakespan);
+		Log.printLine("lb: " + lb);
 	}
 
 }

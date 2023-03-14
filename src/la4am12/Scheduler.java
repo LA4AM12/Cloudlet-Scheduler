@@ -1,6 +1,7 @@
 package la4am12;
 
 import org.cloudbus.cloudsim.Cloudlet;
+import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Vm;
 
 import java.util.Arrays;
@@ -9,7 +10,7 @@ import java.util.List;
 /**
  * @author : LA4AM12
  * @create : 2023-02-23 09:26:19
- * @description : Mapping cloudlets to Vms
+ * @description : Mapping cloudlets to Vms using fitness function
  */
 public abstract class Scheduler {
 	protected List<Cloudlet> cloudletList;
@@ -31,6 +32,8 @@ public abstract class Scheduler {
 		for (int i = 0; i < cloudletNum; i++) {
 			cloudletList.get(i).setVmId(cloudletToVm[i]);
 		}
+		Log.printLine("time span: " + estimateMakespan(cloudletToVm));
+		Log.printLine("LB: " + estimateLB(cloudletToVm));
 	}
 
 	public double estimateLB(int[] cloudletToVm) {
@@ -38,22 +41,24 @@ public abstract class Scheduler {
 		int cloudletNum = cloudletList.size();
 
 		double[] executeTimeOfVM = new double[vmNum];
+		double avgExecuteTime = 0;
 		for (int i = 0; i < cloudletNum; i++) {
 			long length = cloudletList.get(i).getCloudletLength();
 			int vmId = cloudletToVm[i];
-			executeTimeOfVM[vmId] += length / vmList.get(vmId).getMips();
+			double	execTime = length / vmList.get(vmId).getMips();
+			executeTimeOfVM[vmId] += execTime;
+			avgExecuteTime += execTime;
 		}
-		double timeSpan = Arrays.stream(executeTimeOfVM).max().getAsDouble();
-		double[] LBOfVM = new double[vmNum];
+		avgExecuteTime /= vmNum;
+		double LB = 0;
 		for (int i = 0; i < vmNum; i++) {
-			LBOfVM[i] = executeTimeOfVM[i] / timeSpan;
+			LB += Math.pow(executeTimeOfVM[i] - avgExecuteTime, 2);
 		}
-
-		return Arrays.stream(LBOfVM).average().getAsDouble();
-
+		LB = Math.sqrt(LB / vmNum);
+		return LB;
 	}
 
-	public double estimateTimeSpan(int[] cloudletToVm) {
+	public double estimateMakespan(int[] cloudletToVm) {
 		int vmNum = vmList.size();
 		int cloudletNum = cloudletList.size();
 
