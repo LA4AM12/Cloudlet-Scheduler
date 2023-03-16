@@ -1,8 +1,11 @@
 package la4am12;
 
+import la4am12.datacenter.Constants;
+import la4am12.datacenter.Scheduler;
+import la4am12.datacenter.Type;
+import la4am12.ga.GAScheduler;
 import la4am12.maxmin.MaxMinScheduler;
 import la4am12.minmin.MinMinScheduler;
-import la4am12.random.RandomScheduler;
 import la4am12.woa.WOAScheduler;
 import org.cloudbus.cloudsim.*;
 import org.cloudbus.cloudsim.core.CloudSim;
@@ -19,75 +22,11 @@ import java.util.*;
  * @description : Cloud Task (Cloudlet) Scheduling Simulation
  */
 public class Main {
-	/**
-	 * Low performance mips
-	 */
-	private static final int L_MIPS = 1000;
-
-	/**
-	 * Medium performance mips
-	 */
-	private static final int M_MIPS = 2000;
-
-	/**
-	 * High performance mips
-	 */
-	private static final int H_MIPS = 4000;
-
-	/**
-	 * Low performance price ($ per sec)
-	 */
-	private static final float L_PRICE = 0.03f;
-
-	/**
-	 * Medium performance price ($ per sec)
-	 */
-	private static final float M_PRICE = 0.06f;
-
-	/**
-	 * High performance price ($ per sec)
-	 */
-	private static final float H_PRICE = 0.09f;
-
-	/**
-	 * Low performance vms count
-	 */
-	private static final int L_VM_N = 3;
-
-	/**
-	 * Medium performance vms count
-	 */
-	private static final int M_VM_N = 2;
-
-	/**
-	 * High performance vms count
-	 */
-	private static final int H_VM_N = 1;
-
-	/**
-	 * RAM of each VM (MB)
-	 */
-	private static final int RAM = 2048;
-
-	/**
-	 * VM storage capacity
-	 */
-	private static final long STORAGE = 100000;
-
-	/**
-	 * VM image size
-	 */
-	private static final long IMAGE_SIZE = 10000;
-
-	/**
-	 * VM bandwidth
-	 */
-	private static final int BW = 1000;
 
 	/**
 	 * Cloudlets count
 	 */
-	private static final int CLOUDLET_N = 50;
+	private static final int CLOUDLET_N = 600;
 
 	private static final Random R = new Random(0);
 
@@ -100,7 +39,10 @@ public class Main {
 		CloudSim.init(NUM_USER, Calendar.getInstance(), false);
 
 		// Second step: Create Datacenters
-		createDatacenter("Datacenter");
+		Datacenter datacenter0 = createDatacenter("Datacenter0", Type.LOW);
+		Datacenter datacenter1 = createDatacenter("Datacenter1", Type.MEDIUM);
+		Datacenter datacenter2 = createDatacenter("Datacenter2", Type.HIGH);
+
 
 		// Third step: Create Broker
 		DatacenterBroker broker = new DatacenterBroker("Broker");
@@ -117,12 +59,13 @@ public class Main {
 
 		// submit cloudlet list to the broker.
 		broker.submitCloudletList(cloudletList);
-		
+
 		// allocate tasks to vms
 		// Scheduler scheduler = new RandomScheduler(cloudletList, vmList);
 		// Scheduler scheduler = new MinMinScheduler(cloudletList, vmList);
 		// Scheduler scheduler = new MaxMinScheduler(cloudletList, vmList);
-		Scheduler scheduler = new WOAScheduler(cloudletList, vmList);
+		// Scheduler scheduler = new WOAScheduler(cloudletList, vmList);
+		Scheduler scheduler = new GAScheduler(cloudletList, vmList);
 		scheduler.schedule();
 
 		// Starts the simulation
@@ -134,14 +77,40 @@ public class Main {
 		printCloudletList(newList);
 	}
 
-	private static Datacenter createDatacenter(String name) throws Exception {
+	private static Datacenter createDatacenter(String name, Type type) throws Exception {
+		int ram, bw, mips;
+		long storage;
+		double costPerSec;
+
+		switch (type) {
+			case LOW:
+				ram = Constants.RAM * Constants.L_VM_N;
+				bw = Constants.BW * Constants.L_VM_N;
+				mips = Constants.L_MIPS * Constants.L_VM_N;
+				storage = Constants.STORAGE * Constants.L_VM_N;
+				costPerSec = Constants.L_PRICE;
+				break;
+			case MEDIUM:
+				ram = Constants.RAM * Constants.M_VM_N;
+				bw = Constants.BW * Constants.M_VM_N;
+				mips = Constants.M_MIPS * Constants.M_VM_N;
+				storage = Constants.STORAGE * Constants.M_VM_N;
+				costPerSec = Constants.M_PRICE;
+				break;
+			case HIGH:
+				ram = Constants.RAM * Constants.H_VM_N;
+				bw = Constants.BW * Constants.H_VM_N;
+				mips = Constants.H_MIPS * Constants.H_VM_N;
+				storage = Constants.STORAGE * Constants.H_VM_N;
+				costPerSec = Constants.H_PRICE;
+				break;
+			default:
+				throw new Exception("Invalid datacenter type");
+		}
+
+
 		// 1. We need to create a list to store our machine
 		List<Host> hostList = new ArrayList<>();
-
-		int ram = RAM * (L_VM_N + M_VM_N + H_VM_N);
-		long storage = STORAGE * (L_VM_N + M_VM_N + H_VM_N);
-		int bw = BW * (L_VM_N + M_VM_N + H_VM_N);
-		int mips = L_MIPS * L_VM_N + M_MIPS * M_VM_N + H_MIPS * H_VM_N;
 
 		// 2. A Machine contains one or more PEs or CPUs/Cores.
 		List<Pe> peList = new ArrayList<>();
@@ -170,14 +139,13 @@ public class Main {
 		String os = "Linux"; // operating system
 		String vmm = "Xen";
 		double time_zone = 10.0; // time zone this resource located
-		double cost = 3.0; // the cost of using processing in this resource
 		double costPerMem = 0.05; // the cost of using memory in this resource
 		double costPerStorage = 0.001; // the cost of using storage in this resource
 		double costPerBw = 0.0; // the cost of using bw in this resource
 		LinkedList<Storage> storageList = new LinkedList<>(); // we are not adding SAN devices by now
 
 		DatacenterCharacteristics characteristics = new DatacenterCharacteristics(
-				arch, os, vmm, hostList, time_zone, cost, costPerMem,
+				arch, os, vmm, hostList, time_zone, costPerSec, costPerMem,
 				costPerStorage, costPerBw);
 
 		// 6. Finally, we need to create a PowerDatacenter object.
@@ -186,21 +154,21 @@ public class Main {
 
 	private static List<Vm> createVms(int userId) {
 		List<Vm> vmList = new ArrayList<>();
-		
+
 		int vmId = 0;
 		int pesNumber = 1; // number of cpus
 		String vmm = "Xen"; // VMM name
-		
-		for (int i = 0; i < L_VM_N; i++) {
-			vmList.add(new Vm(vmId++, userId, L_MIPS, pesNumber, RAM, BW, IMAGE_SIZE, vmm, new CloudletSchedulerSpaceShared()));
+
+		for (int i = 0; i < Constants.L_VM_N; i++) {
+			vmList.add(new Vm(vmId++, userId, Constants.L_MIPS, pesNumber, Constants.RAM, Constants.BW, Constants.IMAGE_SIZE, vmm, new CloudletSchedulerSpaceShared()));
 		}
 
-		for (int i = 0; i < M_VM_N; i++) {
-			vmList.add(new Vm(vmId++, userId, M_MIPS, pesNumber, RAM, BW, IMAGE_SIZE, vmm, new CloudletSchedulerSpaceShared()));
+		for (int i = 0; i < Constants.M_VM_N; i++) {
+			vmList.add(new Vm(vmId++, userId, Constants.M_MIPS, pesNumber, Constants.RAM, Constants.BW, Constants.IMAGE_SIZE, vmm, new CloudletSchedulerSpaceShared()));
 		}
 
-		for (int i = 0; i < H_VM_N; i++) {
-			vmList.add(new Vm(vmId++, userId, H_MIPS, pesNumber, RAM, BW, IMAGE_SIZE, vmm, new CloudletSchedulerSpaceShared()));
+		for (int i = 0; i < Constants.H_VM_N; i++) {
+			vmList.add(new Vm(vmId++, userId, Constants.H_MIPS, pesNumber, Constants.RAM, Constants.BW, Constants.IMAGE_SIZE, vmm, new CloudletSchedulerSpaceShared()));
 		}
 		return vmList;
 	}
@@ -211,8 +179,8 @@ public class Main {
 		int pesNumber = 1;
 		long outputSize = 300;
 		UtilizationModel utilizationModel = new UtilizationModelFull();
-		
-		for(int i=0; i < CLOUDLET_N; i++) {
+
+		for (int i = 0; i < CLOUDLET_N; i++) {
 			// todo
 			long length = R.nextInt(40000) + 10000;
 			long fileSize = R.nextInt(20000) + 10000;
@@ -230,12 +198,13 @@ public class Main {
 		Log.printLine("========== OUTPUT ==========");
 		Log.printLine("Cloudlet ID" + indent + "STATUS" + indent
 				+ "Data center ID" + indent + "VM ID" + indent + "Time" + indent
-				+ "Start Time" + indent + "Finish Time");
+				+ "Start Time" + indent + "Finish Time" + indent + "CostPerSec" + indent + "Cost");
 
 		DecimalFormat dft = new DecimalFormat("###.##");
 		double makespan = 0;
-		int vmNum = L_VM_N + M_VM_N + H_VM_N;
+		int vmNum = Constants.L_VM_N + Constants.M_VM_N + Constants.H_VM_N;
 		double[] vmUpTime = new double[vmNum];
+		double cost = 0;
 
 		for (Cloudlet cloudlet : cloudletList) {
 			Log.print(indent + cloudlet.getCloudletId() + indent + indent);
@@ -249,6 +218,7 @@ public class Main {
 				int vmId = cloudlet.getVmId();
 				double actualCPUTime = cloudlet.getActualCPUTime();
 				vmUpTime[vmId] += actualCPUTime;
+				cost += actualCPUTime * cloudlet.getCostPerSec();
 
 				Log.print("SUCCESS");
 				Log.printLine(indent + indent + cloudlet.getResourceId()
@@ -257,13 +227,14 @@ public class Main {
 						+ dft.format(cloudlet.getSubmissionTime()) + indent
 						+ indent + dft.format(cloudlet.getExecStartTime())
 						+ indent + indent
-						+ dft.format(finishTime));
+						+ dft.format(finishTime)
+						+ indent + indent + dft.format(cloudlet.getCostPerSec())
+						+ indent + indent + dft.format(actualCPUTime * cloudlet.getCostPerSec()));
 			}
 		}
 		double finalMakespan = makespan;
-		double lb = Arrays.stream(vmUpTime).map(x -> x / finalMakespan).average().getAsDouble();
 		Log.printLine("makespan: " + finalMakespan);
-		Log.printLine("lb: " + lb);
+		Log.printLine("cost: " + cost);
 	}
 
 }

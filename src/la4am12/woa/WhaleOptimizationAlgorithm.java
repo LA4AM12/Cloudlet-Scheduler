@@ -8,7 +8,7 @@ import java.util.Random;
  * @create : 2023-02-10 16:16:20
  * @description : class implements the whale optimization algorithm
  */
-public class WOA {
+public class WhaleOptimizationAlgorithm {
 	private OptFunction optFunction;
 	private double lb, ub;
 	private int population;
@@ -19,7 +19,7 @@ public class WOA {
 	private double[] optimalPos;
 	private double optimalScore;
 
-	public WOA(OptFunction optFunction, int population, int lb, int ub, int dim, int maxIter, boolean minimize) {
+	public WhaleOptimizationAlgorithm(OptFunction optFunction, int population, int lb, int ub, int dim, int maxIter, boolean minimize) {
 		this.optFunction = optFunction;
 		this.population = population;
 		this.lb = lb;
@@ -91,17 +91,17 @@ public class WOA {
 				if (p < 0.5) {
 					if (Math.abs(A) < 1) {
 						double D_Leader = Math.abs(C * optimalPos[j] - positions[i][j]);  // Eq. (2.1)
-						positions[i][j] = (int) (optimalPos[j] - A * D_Leader);      // Eq. (2.2)
+						positions[i][j] = optimalPos[j] - A * D_Leader;      // Eq. (2.2)
 					} else {
 						int randWhaleIdx = rand.nextInt(population);
 						double[] randomPos = positions[randWhaleIdx];
 						double D_X_rand = Math.abs(C * randomPos[j] - positions[i][j]); // Eq. (2.7)
-						positions[i][j] = (int) (randomPos[j] - A * D_X_rand);  // Eq. (2.8)
+						positions[i][j] = randomPos[j] - A * D_X_rand;  // Eq. (2.8)
 					}
 				} else {
 					double distance2Leader = Math.abs(optimalPos[j] - positions[i][j]);
 					// Eq. (2.5)
-					positions[i][j] = (int) (distance2Leader * Math.exp(b * l) * Math.cos(2.0 * Math.PI * l) + optimalPos[j]);
+					positions[i][j] = distance2Leader * Math.exp(b * l) * Math.cos(2.0 * Math.PI * l) + optimalPos[j];
 				}
 			}
 		}

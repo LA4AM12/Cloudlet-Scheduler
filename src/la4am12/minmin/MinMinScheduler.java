@@ -1,7 +1,8 @@
 package la4am12.minmin;
 
-import la4am12.Scheduler;
+import la4am12.datacenter.Scheduler;
 import org.cloudbus.cloudsim.Cloudlet;
+import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Vm;
 
 import java.util.Collections;
@@ -18,6 +19,7 @@ public class MinMinScheduler extends Scheduler {
 		super(cloudletList, vmList);
 		Collections.sort(cloudletList, Comparator.comparingLong(Cloudlet::getCloudletLength));
 		Collections.sort(vmList, Comparator.comparingDouble(Vm::getMips));
+		Log.printLine("Using MinMin scheduler");
 	}
 
 	@Override

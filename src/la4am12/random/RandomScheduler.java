@@ -1,7 +1,8 @@
 package la4am12.random;
 
-import la4am12.Scheduler;
+import la4am12.datacenter.Scheduler;
 import org.cloudbus.cloudsim.Cloudlet;
+import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.Vm;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Random;
 public class RandomScheduler extends Scheduler {
 	public RandomScheduler(List<Cloudlet> cloudletList, List<Vm> vmList) {
 		super(cloudletList, vmList);
+		Log.printLine("Using Random scheduler");
 	}
 
 	@Override

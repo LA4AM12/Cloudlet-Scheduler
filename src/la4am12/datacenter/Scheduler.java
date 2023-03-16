@@ -1,4 +1,4 @@
-package la4am12;
+package la4am12.datacenter;
 
 import org.cloudbus.cloudsim.Cloudlet;
 import org.cloudbus.cloudsim.Log;
@@ -32,8 +32,9 @@ public abstract class Scheduler {
 		for (int i = 0; i < cloudletNum; i++) {
 			cloudletList.get(i).setVmId(cloudletToVm[i]);
 		}
-		Log.printLine("time span: " + estimateMakespan(cloudletToVm));
-		Log.printLine("LB: " + estimateLB(cloudletToVm));
+		Log.printLine("estimate time span: " + estimateMakespan(cloudletToVm));
+		Log.printLine("estimate LB: " + estimateLB(cloudletToVm));
+		Log.printLine("estimate cost: " + estimateCost(cloudletToVm));
 	}
 
 	public double estimateLB(int[] cloudletToVm) {
@@ -45,7 +46,7 @@ public abstract class Scheduler {
 		for (int i = 0; i < cloudletNum; i++) {
 			long length = cloudletList.get(i).getCloudletLength();
 			int vmId = cloudletToVm[i];
-			double	execTime = length / vmList.get(vmId).getMips();
+			double execTime = length / vmList.get(vmId).getMips();
 			executeTimeOfVM[vmId] += execTime;
 			avgExecuteTime += execTime;
 		}
@@ -69,5 +70,24 @@ public abstract class Scheduler {
 			executeTimeOfVM[vmId] += length / vmList.get(vmId).getMips();
 		}
 		return Arrays.stream(executeTimeOfVM).max().getAsDouble();
+	}
+
+	public double estimateCost(int[] cloudletToVm) {
+		double cost = 0;
+		double costPerSec = 0;
+		for (int i = 0; i < cloudletNum; i++) {
+			long length = cloudletList.get(i).getCloudletLength();
+			double mips = vmList.get(cloudletToVm[i]).getMips();
+			if (mips == Constants.L_MIPS) {
+				costPerSec = Constants.L_PRICE;
+			} else if (mips == Constants.M_MIPS) {
+				costPerSec = Constants.M_PRICE;
+			} else if (mips == Constants.H_MIPS) {
+				costPerSec = Constants.H_PRICE;
+			}
+			int vmId = cloudletToVm[i];
+			cost += length / vmList.get(vmId).getMips() * costPerSec;
+		}
+		return cost;
 	}
 }
