@@ -29,27 +29,27 @@ public interface Constants {
 	/**
 	 * Medium performance price ($ per sec)
 	 */
-	public static final double M_PRICE = 0.6;
+	public static final double M_PRICE = 0.7;
 
 	/**
 	 * High performance price ($ per sec)
 	 */
-	public static final double H_PRICE = 0.9;
+	public static final double H_PRICE = 1.5;
 
 	/**
 	 * Low performance vms count
 	 */
-	public static final int L_VM_N = 3;
+	public static final int L_VM_N = 4;
 
 	/**
 	 * Medium performance vms count
 	 */
-	public static final int M_VM_N = 2;
+	public static final int M_VM_N = 3;
 
 	/**
 	 * High performance vms count
 	 */
-	public static final int H_VM_N = 1;
+	public static final int H_VM_N = 2;
 
 	/**
 	 * RAM of each VM (MB)

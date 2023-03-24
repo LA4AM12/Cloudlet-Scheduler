@@ -6,7 +6,9 @@ import la4am12.datacenter.Type;
 import la4am12.ga.GAScheduler;
 import la4am12.maxmin.MaxMinScheduler;
 import la4am12.minmin.MinMinScheduler;
+import la4am12.random.RandomScheduler;
 import la4am12.woa.WOAScheduler;
+import la4am12.woaga.WOAGAScheduler;
 import org.cloudbus.cloudsim.*;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
@@ -66,6 +68,7 @@ public class Main {
 		// Scheduler scheduler = new MaxMinScheduler(cloudletList, vmList);
 		// Scheduler scheduler = new WOAScheduler(cloudletList, vmList);
 		Scheduler scheduler = new GAScheduler(cloudletList, vmList);
+		// Scheduler scheduler = new WOAGAScheduler(cloudletList, vmList);
 		scheduler.schedule();
 
 		// Starts the simulation
@@ -228,8 +231,8 @@ public class Main {
 						+ indent + dft.format(cloudlet.getExecStartTime())
 						+ indent + indent
 						+ dft.format(finishTime)
-						+ indent + indent + dft.format(cloudlet.getCostPerSec())
-						+ indent + indent + dft.format(actualCPUTime * cloudlet.getCostPerSec()));
+						+ indent + indent + indent + dft.format(cloudlet.getCostPerSec())
+						+ indent + indent + indent + dft.format(actualCPUTime * cloudlet.getCostPerSec()));
 			}
 		}
 		double finalMakespan = makespan;

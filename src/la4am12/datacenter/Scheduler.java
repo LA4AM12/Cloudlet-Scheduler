@@ -13,6 +13,12 @@ import java.util.List;
  * @description : Mapping cloudlets to Vms using fitness function
  */
 public abstract class Scheduler {
+	// cost
+	private static final double ALPHA = 0;
+	// total time
+	private static final double BETA = 0.8;
+	// LB
+	private static final double GAMMA = 0.2;
 	protected List<Cloudlet> cloudletList;
 	protected List<Vm> vmList;
 	protected int cloudletNum;
@@ -35,12 +41,11 @@ public abstract class Scheduler {
 		Log.printLine("estimate time span: " + estimateMakespan(cloudletToVm));
 		Log.printLine("estimate LB: " + estimateLB(cloudletToVm));
 		Log.printLine("estimate cost: " + estimateCost(cloudletToVm));
+		Log.printLine("estimate totalTime: " + estimateTotalTime(cloudletToVm));
+		Log.printLine("estimate fitness: " + estimateFitness(cloudletToVm));
 	}
 
 	public double estimateLB(int[] cloudletToVm) {
-		int vmNum = vmList.size();
-		int cloudletNum = cloudletList.size();
-
 		double[] executeTimeOfVM = new double[vmNum];
 		double avgExecuteTime = 0;
 		for (int i = 0; i < cloudletNum; i++) {
@@ -60,9 +65,6 @@ public abstract class Scheduler {
 	}
 
 	public double estimateMakespan(int[] cloudletToVm) {
-		int vmNum = vmList.size();
-		int cloudletNum = cloudletList.size();
-
 		double[] executeTimeOfVM = new double[vmNum];
 		for (int i = 0; i < cloudletNum; i++) {
 			long length = cloudletList.get(i).getCloudletLength();
@@ -89,5 +91,56 @@ public abstract class Scheduler {
 			cost += length / vmList.get(vmId).getMips() * costPerSec;
 		}
 		return cost;
+	}
+
+	public double estimateTotalTime(int[] cloudletToVm) {
+		double totalTime = 0;
+		for (int i = 0; i < cloudletNum; i++) {
+			long length = cloudletList.get(i).getCloudletLength();
+			int vmId = cloudletToVm[i];
+			totalTime += length / vmList.get(vmId).getMips();
+		}
+		return totalTime;
+	}
+
+	private double estimateMaxCost() {
+		int[] cloudletToVm = new int[cloudletNum];
+		Arrays.fill(cloudletToVm, vmNum-1);
+
+		return estimateCost(cloudletToVm);
+	}
+
+	private double estimateMinCost() {
+		int[] cloudletToVm = new int[cloudletNum];
+		Arrays.fill(cloudletToVm, 0);
+		return estimateCost(cloudletToVm);
+	}
+
+	private double estimateMaxTotalTime() {
+		int[] cloudletToVm = new int[cloudletNum];
+		Arrays.fill(cloudletToVm, 0);
+		return estimateMakespan(cloudletToVm);
+	}
+
+	private double estimateMinTotalTime() {
+		int[] cloudletToVm = new int[cloudletNum];
+		Arrays.fill(cloudletToVm, vmNum-1);
+		return estimateMakespan(cloudletToVm);
+	}
+
+	private double estimateMaxLB() {
+		int[] cloudletToVm = new int[cloudletNum];
+		Arrays.fill(cloudletToVm, 0);
+		return estimateLB(cloudletToVm);
+	}
+
+	private double estimateMinLB() {
+		return 0.0;
+	}
+
+	public double estimateFitness(int[] cloudletToVm) {
+		return ALPHA * (estimateCost(cloudletToVm) - estimateMinCost()) / (estimateMaxCost() - estimateMinCost())
+				+ BETA * (estimateTotalTime(cloudletToVm) - estimateMinTotalTime()) / (estimateMaxTotalTime() - estimateMinTotalTime())
+				+ GAMMA * (estimateLB(cloudletToVm) - estimateMinLB()) / (estimateMaxLB() - estimateMinLB());
 	}
 }

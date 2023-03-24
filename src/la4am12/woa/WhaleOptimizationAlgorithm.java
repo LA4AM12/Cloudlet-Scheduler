@@ -136,4 +136,7 @@ public class WhaleOptimizationAlgorithm {
 		return optimalScore;
 	}
 
+	public double[][] getPositions() {
+		return positions;
+	}
 }

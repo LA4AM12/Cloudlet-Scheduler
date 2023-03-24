@@ -34,13 +34,15 @@ public class GeneticAlgorithm {
 	}
 
 	public void initializePopulation() {
-		Chromosomes = new ArrayList<>();
-		for (int i = 0; i < population; i++) {
-			int[] genes = new int[genesN];
-			for (int j = 0; j < genesN; j++) {
-				genes[j] = random.nextInt(boundary);
+		if (Chromosomes == null) {
+			Chromosomes = new ArrayList<>();
+			for (int i = 0; i < population; i++) {
+				int[] genes = new int[genesN];
+				for (int j = 0; j < genesN; j++) {
+					genes[j] = random.nextInt(boundary);
+				}
+				Chromosomes.add(new Chromosome(genes));
 			}
-			Chromosomes.add(new Chromosome(genes));
 		}
 	}
 
@@ -145,6 +147,13 @@ public class GeneticAlgorithm {
 		@Override
 		public String toString() {
 			return "fitness:" + fitness + "genes:" + Arrays.toString(genes);
+		}
+	}
+
+	public void setChromosomes(int[][] chromosomes) {
+		Chromosomes = new ArrayList<>();
+		for (int[] chromosome : chromosomes) {
+			Chromosomes.add(new Chromosome(chromosome));
 		}
 	}
 }
