@@ -1,4 +1,4 @@
-package la4am12.ga;
+package la4am12.datacenter;
 
 /**
  * @author : LA4AM12

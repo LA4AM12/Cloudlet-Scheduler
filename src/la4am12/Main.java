@@ -6,9 +6,8 @@ import la4am12.datacenter.Type;
 import la4am12.ga.GAScheduler;
 import la4am12.maxmin.MaxMinScheduler;
 import la4am12.minmin.MinMinScheduler;
-import la4am12.random.RandomScheduler;
 import la4am12.woa.WOAScheduler;
-import la4am12.woaga.WOAGAScheduler;
+import la4am12.woaga.WOGAScheduler;
 import org.cloudbus.cloudsim.*;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
@@ -28,7 +27,7 @@ public class Main {
 	/**
 	 * Cloudlets count
 	 */
-	private static final int CLOUDLET_N = 600;
+	private static final int CLOUDLET_N = 300;
 
 	private static final Random R = new Random(0);
 
@@ -67,8 +66,8 @@ public class Main {
 		// Scheduler scheduler = new MinMinScheduler(cloudletList, vmList);
 		// Scheduler scheduler = new MaxMinScheduler(cloudletList, vmList);
 		// Scheduler scheduler = new WOAScheduler(cloudletList, vmList);
-		Scheduler scheduler = new GAScheduler(cloudletList, vmList);
-		// Scheduler scheduler = new WOAGAScheduler(cloudletList, vmList);
+		// Scheduler scheduler = new GAScheduler(cloudletList, vmList);
+		Scheduler scheduler = new WOGAScheduler(cloudletList, vmList);
 		scheduler.schedule();
 
 		// Starts the simulation
@@ -144,12 +143,12 @@ public class Main {
 		double time_zone = 10.0; // time zone this resource located
 		double costPerMem = 0.05; // the cost of using memory in this resource
 		double costPerStorage = 0.001; // the cost of using storage in this resource
-		double costPerBw = 0.0; // the cost of using bw in this resource
+		double costPerGB = 0.1; // the cost of using bw in this resource
 		LinkedList<Storage> storageList = new LinkedList<>(); // we are not adding SAN devices by now
 
 		DatacenterCharacteristics characteristics = new DatacenterCharacteristics(
 				arch, os, vmm, hostList, time_zone, costPerSec, costPerMem,
-				costPerStorage, costPerBw);
+				costPerStorage, costPerGB);
 
 		// 6. Finally, we need to create a PowerDatacenter object.
 		return new Datacenter(name, characteristics, new VmAllocationPolicySimple(hostList), storageList, 0);
@@ -180,13 +179,12 @@ public class Main {
 		List<Cloudlet> cloudletList = new ArrayList<>();
 		int id = 0;
 		int pesNumber = 1;
-		long outputSize = 300;
 		UtilizationModel utilizationModel = new UtilizationModelFull();
 
 		for (int i = 0; i < CLOUDLET_N; i++) {
-			// todo
 			long length = R.nextInt(40000) + 10000;
-			long fileSize = R.nextInt(20000) + 10000;
+			long fileSize = R.nextInt(190) + 10;
+			long outputSize = R.nextInt(190) + 10;
 			Cloudlet cloudlet = new Cloudlet(id, length, pesNumber, fileSize, outputSize, utilizationModel, utilizationModel, utilizationModel);
 			cloudlet.setUserId(userId);
 			cloudletList.add(cloudlet);
@@ -201,13 +199,14 @@ public class Main {
 		Log.printLine("========== OUTPUT ==========");
 		Log.printLine("Cloudlet ID" + indent + "STATUS" + indent
 				+ "Data center ID" + indent + "VM ID" + indent + "Time" + indent
-				+ "Start Time" + indent + "Finish Time" + indent + "CostPerSec" + indent + "Cost");
+				+ "Start Time" + indent + "Finish Time" + indent + "BWCost" + indent + "CPUCost");
 
 		DecimalFormat dft = new DecimalFormat("###.##");
 		double makespan = 0;
 		int vmNum = Constants.L_VM_N + Constants.M_VM_N + Constants.H_VM_N;
-		double[] vmUpTime = new double[vmNum];
+		double[] executeTimeOfVM = new double[vmNum];
 		double cost = 0;
+		double LB = 0;
 
 		for (Cloudlet cloudlet : cloudletList) {
 			Log.print(indent + cloudlet.getCloudletId() + indent + indent);
@@ -220,7 +219,7 @@ public class Main {
 				}
 				int vmId = cloudlet.getVmId();
 				double actualCPUTime = cloudlet.getActualCPUTime();
-				vmUpTime[vmId] += actualCPUTime;
+				executeTimeOfVM[vmId] += actualCPUTime;
 				cost += actualCPUTime * cloudlet.getCostPerSec();
 
 				Log.print("SUCCESS");
@@ -231,12 +230,19 @@ public class Main {
 						+ indent + dft.format(cloudlet.getExecStartTime())
 						+ indent + indent
 						+ dft.format(finishTime)
-						+ indent + indent + indent + dft.format(cloudlet.getCostPerSec())
+						+ indent + indent + indent + dft.format(cloudlet.getProcessingCost())
 						+ indent + indent + indent + dft.format(actualCPUTime * cloudlet.getCostPerSec()));
 			}
 		}
+		double avgExecuteTime = Arrays.stream(executeTimeOfVM).average().getAsDouble();
+		for (int i = 0; i < vmNum; i++) {
+			// System.out.print(executeTimeOfVM[i] + " ");
+			LB += Math.pow(executeTimeOfVM[i] - avgExecuteTime, 2);
+		}
+		LB = Math.sqrt(LB / vmNum);
 		double finalMakespan = makespan;
 		Log.printLine("makespan: " + finalMakespan);
+		Log.printLine("LB: " + LB);
 		Log.printLine("cost: " + cost);
 	}
 

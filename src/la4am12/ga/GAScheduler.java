@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class GAScheduler extends Scheduler {
 	private static final int POPULATION_SIZE = 100; // 种群大小
-	private static final int MAX_GENERATIONS = 20; // 最大迭代次数
+	private static final int MAX_GENERATIONS = 100; // 最大迭代次数
 	private static final double CROSSOVER_RATE = 0.6; // 交叉概率
 	private static final double MUTATION_RATE = 0.005; // 变异概率
 	private static final double TOURNAMENT_RATIO = 0.15; // 锦标赛选择中的竞争个数占比

@@ -6,6 +6,7 @@ import org.cloudbus.cloudsim.Vm;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 /**
  * @author : LA4AM12
@@ -14,21 +15,28 @@ import java.util.List;
  */
 public abstract class Scheduler {
 	// cost
-	private static final double ALPHA = 0;
+	private static final double ALPHA = 1.0/3;
 	// total time
-	private static final double BETA = 0.8;
+	private static final double BETA = 1.0/3;
 	// LB
-	private static final double GAMMA = 0.2;
+	private static final double GAMMA = 1.0/3;
 	protected List<Cloudlet> cloudletList;
 	protected List<Vm> vmList;
 	protected int cloudletNum;
 	protected int vmNum;
+	private int[] randomCloudletToVm;
+
 
 	public Scheduler(List<Cloudlet> cloudletList, List<Vm> vmList) {
 		this.cloudletList = cloudletList;
 		this.vmList = vmList;
 		cloudletNum = cloudletList.size();
 		vmNum = vmList.size();
+		randomCloudletToVm = new int[cloudletNum];
+		Random random = new Random();
+		for (int i = 0; i < cloudletNum; i++) {
+			randomCloudletToVm[i] = random.nextInt(vmNum);
+		}
 	}
 
 	public abstract int[] allocate();
@@ -105,33 +113,31 @@ public abstract class Scheduler {
 
 	private double estimateMaxCost() {
 		int[] cloudletToVm = new int[cloudletNum];
-		Arrays.fill(cloudletToVm, vmNum-1);
+		Arrays.fill(cloudletToVm, 0);
 
 		return estimateCost(cloudletToVm);
 	}
 
 	private double estimateMinCost() {
 		int[] cloudletToVm = new int[cloudletNum];
-		Arrays.fill(cloudletToVm, 0);
+		Arrays.fill(cloudletToVm, vmNum-1);
 		return estimateCost(cloudletToVm);
 	}
 
 	private double estimateMaxTotalTime() {
 		int[] cloudletToVm = new int[cloudletNum];
 		Arrays.fill(cloudletToVm, 0);
-		return estimateMakespan(cloudletToVm);
+		return estimateTotalTime(cloudletToVm);
 	}
 
 	private double estimateMinTotalTime() {
 		int[] cloudletToVm = new int[cloudletNum];
 		Arrays.fill(cloudletToVm, vmNum-1);
-		return estimateMakespan(cloudletToVm);
+		return estimateTotalTime(cloudletToVm);
 	}
 
 	private double estimateMaxLB() {
-		int[] cloudletToVm = new int[cloudletNum];
-		Arrays.fill(cloudletToVm, 0);
-		return estimateLB(cloudletToVm);
+		return estimateLB(randomCloudletToVm);
 	}
 
 	private double estimateMinLB() {

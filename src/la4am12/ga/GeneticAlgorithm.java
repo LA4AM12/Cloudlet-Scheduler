@@ -6,7 +6,7 @@ package la4am12.ga;
  * @description : genetic algorithm
  */
 
-import la4am12.woa.OptFunction;
+import la4am12.datacenter.OptFunction;
 
 import java.util.*;
 

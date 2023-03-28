@@ -1,5 +1,7 @@
 package la4am12.woa;
 
+import la4am12.datacenter.OptFunction;
+
 import java.util.Arrays;
 import java.util.Random;
 
@@ -30,14 +32,14 @@ public class WhaleOptimizationAlgorithm {
 		this.convergenceCurve = new double[maxIter];
 		this.minimize = minimize;
 		this.optimalScore = minimize ? Double.MAX_VALUE : -Double.MAX_VALUE;
-		optimalPos = new double[dim];
+		this.optimalPos = new double[dim];
 		initPopulation();
 	}
 
 
 	private void adjustPositions(int agentIndex) {
-		positions[agentIndex] = Arrays.stream(positions[agentIndex]).map(Math::round).toArray();
 		for (int j = 0; j < dim; j++) {
+			positions[agentIndex][j] = Math.round(positions[agentIndex][j]);
 			if (positions[agentIndex][j] < lb) {
 				positions[agentIndex][j] = lb;
 			}
@@ -64,7 +66,7 @@ public class WhaleOptimizationAlgorithm {
 			adjustPositions(i);
 
 			// Calculate objective function for each search agent
-			int[] params = Arrays.stream(positions[i]).mapToLong(Math::round).mapToInt((x) -> (int) x).toArray();
+			int[] params = Arrays.stream(positions[i]).mapToInt((x) -> (int) x).toArray();
 			double fitness = optFunction.calc(params);
 
 			// Update the leader
@@ -121,7 +123,7 @@ public class WhaleOptimizationAlgorithm {
 			updatePosition(a, a2);
 		}
 		calcFitness();
-		return Arrays.stream(optimalPos).mapToLong(Math::round).mapToInt((x) -> (int) x).toArray();
+		return Arrays.stream(optimalPos).map(Math::round).mapToInt((x) -> (int) x).toArray();
 	}
 
 	public double[] getConvergenceCurve() {

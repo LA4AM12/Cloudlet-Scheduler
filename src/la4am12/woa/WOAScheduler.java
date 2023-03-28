@@ -22,8 +22,8 @@ public class WOAScheduler extends Scheduler {
 
 	public WOAScheduler(List<Cloudlet> cloudletList, List<Vm> vmList) {
 		super(cloudletList, vmList);
-		this.woa = new WhaleOptimizationAlgorithm(this::estimateLB, POPULATION, 0, vmNum-1, cloudletNum, MAX_ITER, true);
-		Log.printLine("Using WOA scheduler");
+		this.woa = new WhaleOptimizationAlgorithm(this::estimateFitness, POPULATION, 0, vmNum-1, cloudletNum, MAX_ITER, true);
+		Log.printLine("Using WOGA scheduler");
 	}
 
 	@Override
