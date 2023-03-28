@@ -1,4 +1,4 @@
-package la4am12.woaga;
+package la4am12.hwga;
 
 import la4am12.datacenter.OptFunction;
 
@@ -7,9 +7,9 @@ import java.util.*;
 /**
  * @author : LA4AM12
  * @create : 2023-03-28 11:24:04
- * @description : whale optimization + genetic algorithm
+ * @description : hybrid whale genetic algorithm
  */
-public class WOGA {
+public class HWGA {
 	private class Whale implements Comparable<Whale> {
 		private double[] position;
 		private double fitness;
@@ -62,7 +62,7 @@ public class WOGA {
 	private double phaseOutRatio;
 	private static final Random R = new Random();
 
-	public WOGA(OptFunction optFunction,
+	public HWGA(OptFunction optFunction,
 				int population, int upperBound,
 				int dim,
 				int maxIter,

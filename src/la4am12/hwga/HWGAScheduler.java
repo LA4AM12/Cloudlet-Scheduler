@@ -1,4 +1,4 @@
-package la4am12.woaga;
+package la4am12.hwga;
 
 import la4am12.datacenter.Scheduler;
 import org.cloudbus.cloudsim.Cloudlet;
@@ -12,8 +12,8 @@ import java.util.List;
  * @create : 2023-03-16 10:49:41
  * @description :
  */
-public class WOGAScheduler extends Scheduler {
-	private WOGA WOGA;
+public class HWGAScheduler extends Scheduler {
+	private HWGA HWGA;
 	private static final int POPULATION = 100;
 	private static final int MAX_ITER = 100;
 	private static final double CROSSOVER_RATE = 0.6;
@@ -22,9 +22,9 @@ public class WOGAScheduler extends Scheduler {
 	private static final double PHASE_OUT_RATIO = 0.15;
 
 
-	public WOGAScheduler(List<Cloudlet> cloudletList, List<Vm> vmList) {
+	public HWGAScheduler(List<Cloudlet> cloudletList, List<Vm> vmList) {
 		super(cloudletList, vmList);
-		this.WOGA = new WOGA(
+		this.HWGA = new HWGA(
 				this::estimateMakespan,
 				POPULATION,
 				vmNum-1,
@@ -34,11 +34,11 @@ public class WOGAScheduler extends Scheduler {
 				CROSSOVER_RATE,
 				MUTATION_RATE,
 				PHASE_OUT_RATIO);
-		Log.printLine("Using WOGA scheduler");
+		Log.printLine("Using HWGA scheduler");
 	}
 
 	@Override
 	public int[] allocate() {
-		return WOGA.run();
+		return HWGA.run();
 	}
 }

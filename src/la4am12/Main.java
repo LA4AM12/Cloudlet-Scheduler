@@ -3,11 +3,8 @@ package la4am12;
 import la4am12.datacenter.Constants;
 import la4am12.datacenter.Scheduler;
 import la4am12.datacenter.Type;
-import la4am12.ga.GAScheduler;
-import la4am12.maxmin.MaxMinScheduler;
+import la4am12.hwga.HWGAScheduler;
 import la4am12.minmin.MinMinScheduler;
-import la4am12.woa.WOAScheduler;
-import la4am12.woaga.WOGAScheduler;
 import org.cloudbus.cloudsim.*;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.provisioners.BwProvisionerSimple;
@@ -67,7 +64,7 @@ public class Main {
 		// Scheduler scheduler = new MaxMinScheduler(cloudletList, vmList);
 		// Scheduler scheduler = new WOAScheduler(cloudletList, vmList);
 		// Scheduler scheduler = new GAScheduler(cloudletList, vmList);
-		Scheduler scheduler = new WOGAScheduler(cloudletList, vmList);
+		Scheduler scheduler = new HWGAScheduler(cloudletList, vmList);
 		scheduler.schedule();
 
 		// Starts the simulation
